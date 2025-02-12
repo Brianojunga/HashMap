@@ -8,18 +8,10 @@ function hash(key, length){
     return hashCode
 }
 
-function arraywith(i){
-    const keysArray = [];
-        for (let items of this.table){
-            items.forEach(item => keysArray.push(item[i]))
-        }
-        return keysArray
-}
 
-
-class hashTable{
+export class hashTable{
     constructor(){
-        this.capacity = 3,
+        this.capacity = 16,
         this.numberOfElements = 0,
         this.table = new Array(this.capacity)
     }
@@ -28,38 +20,60 @@ class hashTable{
         return this.numberOfElements / this.capacity
     }
 
-
+    resize() {
+        this.capacity = this.capacity * 2;
+        const newTable = new Array(this.capacity);
+    
+        this.table.forEach(item => {
+            if (item) {
+                item.forEach(([key, value]) => {
+                    const index = hash(key, newTable.length);
+                    if (!newTable[index]) {
+                        newTable[index] = [[key, value]];
+                    } else {
+                        newTable[index].push([key, value]);
+                    }
+                });
+            }
+        });
+    
+        this.table = newTable;
+    }
 
     set(key, value){
+         if(this.loadFactor > 0.75){
+           this.resize()
+        }
+
         const index = hash(key, this.table.length);
         if(!this.table[index]){
             this.table[index] = [[key, value]]
             this.numberOfElements++
         }else{
-            //check if the key is present in that index and update the value
            const itemPresent = this.table[index].find(item => item[0] === key);
            if(itemPresent){
              itemPresent[1] = value
            }else{
-            //if item is not present then push it to the table in that index
             this.table[index].push([key, value])
             this.numberOfElements++
            }
-        }
-        
+        }  
     }
+
 
     get(key){
         const index = hash(key, this.table.length)
+        if(!this.table[index]) return null
         const itemPresent = this.table[index].find(item => item[0] === key)
-        return (!this.table[index] || !itemPresent) ? null :  itemPresent[1]
+        return !itemPresent ? null :  itemPresent[1]
     }
           
 
     has(key){
         const index = hash(key, this.table.length);
+        if(!this.table[index]) return false
         const itemPresent = this.table[index].find(item => item[0] === key);
-        return (!this.table[index] || !itemPresent) ?  false : true
+        return (!itemPresent) ?  false : true
     }
 
     remove(key){
@@ -80,14 +94,13 @@ class hashTable{
     }
 
     clear(){
+        this.capacity = 16;
         this.table = new Array(this.capacity);
         this.numberOfElements = 0
     }
     arraywith(i){
         const array = [];
-            for (let items of this.table){
-                items.forEach(item => array.push(item[i]))
-            }
+        this.table.forEach(item => item.forEach(item => array.push(item[i])))
         return array
     }
     
@@ -101,23 +114,7 @@ class hashTable{
 
     entries(){
         const entriesArray = [];
-            for (let items of this.table){
-                items.forEach(item => entriesArray.push(item))
-            }
+        this.table.forEach(item => {item.forEach(item => entriesArray.push(item))})
         return entriesArray
     }
 }
-
-
-const hashMap = new hashTable()
-hashMap.set('Ojoules', "ken");
-hashMap.set('busuch', 'hallow');
-hashMap.set('busuch', 'Jek');
-hashMap.set('bob', "ojay")
-hashMap.set('ken', "bob")
-console.log(hashMap.remove('ken'))
-console.log(hashMap.get('ken'))
-console.log(hashMap.keys())
-console.log(hashMap.table)
-console.log(hashMap.length())
-console.log(hashMap.loadFactor)
